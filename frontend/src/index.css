@@ -6,10 +6,11 @@
   --accent: #6c47ff;
   --accent2: #ff6b6b;
   --bg-color: #ffffff;
-  --text-primary: #0f172a;
+   --text-primary: #c2b2b2;
   --text-secondary: #475569;
   --card-bg: #f8fafc;
   --border-color: rgba(0,0,0,0.1);
+  --bg-color: #000000;
 }
 
 .dark {

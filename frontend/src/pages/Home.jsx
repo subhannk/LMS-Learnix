@@ -8,13 +8,10 @@ const Home = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard', { replace: true })
-    }
+    if (user) navigate('/dashboard', { replace: true })
   }, [user, navigate])
 
   if (user) return null
-
   return <Landing />
 }
 

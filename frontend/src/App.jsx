@@ -13,15 +13,14 @@ import AdminPanel from './pages/AdminPanel'
 import InstructorPanel from './pages/InstructorPanel'
 import StudentDashboard from './pages/StudentDashboard'
 
-const hideNavbarPaths = ['/', '/login', '/register']
-
 const Layout = ({ children }) => {
-  const location = useLocation()
   const { user } = useAuth()
-  const hide = hideNavbarPaths.includes(location.pathname) ||
-    (!user && location.pathname === '/courses') ||
-    location.pathname.startsWith('/student')
-  return <>{!hide && <Navbar />}{children}</>
+  const location = useLocation()
+  const hideNavbar =
+    ['/', '/login', '/register'].includes(location.pathname) ||
+    location.pathname.startsWith('/student') ||
+    (!user && location.pathname.startsWith('/courses'))
+  return <>{!hideNavbar && <Navbar />}{children}</>
 }
 
 function App() {
@@ -35,18 +34,10 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/courses" element={<CourseList />} />
             <Route path="/courses/:id" element={<CourseDetail />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute><Dashboard /></ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute roles={['admin']}><AdminPanel /></ProtectedRoute>
-            } />
-            <Route path="/instructor" element={
-              <ProtectedRoute roles={['instructor', 'admin']}><InstructorPanel /></ProtectedRoute>
-            } />
-            <Route path="/student/*" element={
-              <ProtectedRoute roles={['student']}><StudentDashboard /></ProtectedRoute>
-            } />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminPanel /></ProtectedRoute>} />
+            <Route path="/instructor" element={<ProtectedRoute roles={['instructor','admin']}><InstructorPanel /></ProtectedRoute>} />
+            <Route path="/student/*" element={<ProtectedRoute roles={['student']}><StudentDashboard /></ProtectedRoute>} />
           </Routes>
         </Layout>
       </BrowserRouter>

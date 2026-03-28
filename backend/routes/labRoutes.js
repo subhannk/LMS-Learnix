@@ -4,6 +4,7 @@ const Lab = require('../models/Lab');
 const { protect } = require('../middleware/authMiddleware');
 const { authorizeRoles } = require('../middleware/roleMiddleware');
 
+// GET all labs
 router.get('/', protect, async (req, res) => {
   try {
     const labs = await Lab.find({ isActive: true });
@@ -13,6 +14,7 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+// POST create lab (admin/instructor)
 router.post('/', protect, authorizeRoles('admin', 'instructor'), async (req, res) => {
   try {
     const lab = new Lab(req.body);
@@ -23,6 +25,7 @@ router.post('/', protect, authorizeRoles('admin', 'instructor'), async (req, res
   }
 });
 
+// PUT complete a lab
 router.put('/:id/complete', protect, async (req, res) => {
   try {
     const lab = await Lab.findById(req.params.id);

@@ -4,25 +4,30 @@ const Exam = require('../models/Exam');
 const { protect } = require('../middleware/authMiddleware');
 const { authorizeRoles } = require('../middleware/roleMiddleware');
 
+// GET all active exams
 router.get('/', protect, async (req, res) => {
   try {
-    const exams = await Exam.find({ isActive: true }).select('-questions.correctAnswer');
+    const exams = await Exam.find({ isActive: true })
+      .select('-questions.correctAnswer');
     res.json(exams);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
+// GET single exam
 router.get('/:id', protect, async (req, res) => {
   try {
-    const exam = await Exam.findById(req.params.id).select('-questions.correctAnswer');
-    if (!exam) return res.status(404).json({ message: 'Not found' });
+    const exam = await Exam.findById(req.params.id)
+      .select('-questions.correctAnswer');
+    if (!exam) return res.status(404).json({ message: 'Exam not found' });
     res.json(exam);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
+// POST create exam (admin/instructor)
 router.post('/', protect, authorizeRoles('admin', 'instructor'), async (req, res) => {
   try {
     const exam = new Exam(req.body);
@@ -33,11 +38,12 @@ router.post('/', protect, authorizeRoles('admin', 'instructor'), async (req, res
   }
 });
 
+// POST submit exam
 router.post('/:id/submit', protect, async (req, res) => {
   try {
     const { answers } = req.body;
     const exam = await Exam.findById(req.params.id);
-    if (!exam) return res.status(404).json({ message: 'Not found' });
+    if (!exam) return res.status(404).json({ message: 'Exam not found' });
 
     const already = exam.submissions.find(
       s => s.user.toString() === req.user._id.toString()
@@ -46,12 +52,15 @@ router.post('/:id/submit', protect, async (req, res) => {
 
     let score = 0;
     exam.questions.forEach((q, i) => {
-      if (Number(answers[i]) === q.correctAnswer) score += q.points;
+      if (Number(answers[i]) === q.correctAnswer) {
+        score += q.points;
+      }
     });
 
     const passed = score >= exam.passingMarks;
     exam.submissions.push({ user: req.user._id, score, passed });
     await exam.save();
+
     res.json({ score, passed, totalMarks: exam.totalMarks });
   } catch (err) {
     res.status(500).json({ message: err.message });

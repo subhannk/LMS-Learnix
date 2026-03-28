@@ -16,29 +16,20 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Load routes safely
-const loadRoute = (path) => {
-  try {
-    const route = require(path);
-    if (typeof route === 'function' || route.handle) return route;
-    throw new Error(`Route ${path} did not export a valid router`);
-  } catch (err) {
-    console.error(`❌ Failed to load route: ${path}`, err.message);
-    process.exit(1);
-  }
-};
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/courses', require('./routes/courseRoutes'));
+app.use('/api/enrollments', require('./routes/enrollmentRoutes'));
+app.use('/api/reviews', require('./routes/reviewRoutes'));
+app.use('/api/labs', require('./routes/labRoutes'));
+app.use('/api/exams', require('./routes/examRoutes'));
 
-app.use('/api/auth', loadRoute('./routes/authRoutes'));
-app.use('/api/users', loadRoute('./routes/userRoutes'));
-app.use('/api/courses', loadRoute('./routes/courseRoutes'));
-app.use('/api/enrollments', loadRoute('./routes/enrollmentRoutes'));
-app.use('/api/reviews', loadRoute('./routes/reviewRoutes'));
-app.use('/api/labs', loadRoute('./routes/labRoutes'));
-app.use('/api/exams', loadRoute('./routes/examRoutes'));
-
-app.get('/', (req, res) => res.json({ message: '🚀 CyberSquare LMS API Running' }));
+app.get('/', (req, res) => {
+  res.json({ message: '🚀 CyberSquare LMS API Running', status: 'OK' });
+});
 
 app.use((err, req, res, next) => {
+  console.error(err.stack);
   res.status(500).json({ message: err.message });
 });
 
@@ -47,4 +38,6 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 CyberSquare Server running on port ${PORT}`);
+});
