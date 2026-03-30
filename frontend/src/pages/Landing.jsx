@@ -198,11 +198,11 @@ const Landing = () => {
           ))}
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 44 }}>
+        {/* <div style={{ textAlign: 'center', marginTop: 44 }}>
           <Link to="/courses" style={{ background: 'linear-gradient(135deg,#6c47ff,#9c47ff)', color: '#fff', textDecoration: 'none', padding: '14px 36px', borderRadius: 14, fontWeight: 700, fontSize: 15, boxShadow: '0 0 40px rgba(108,71,255,0.35)', display: 'inline-block' }}>
             Explore All Courses →
           </Link>
-        </div>
+        </div> */}
       </section>
 
       {/* WHY CYBERSQUARE */}
