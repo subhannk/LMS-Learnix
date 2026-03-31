@@ -23,6 +23,7 @@ app.use('/api/enrollments', require('./routes/enrollmentRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/labs', require('./routes/labRoutes'));
 app.use('/api/exams', require('./routes/examRoutes'));
+app.use('/api/attendance', require('./routes/attendanceRoutes'));
 
 app.get('/', (req, res) => {
   res.json({ message: '🚀 CyberSquare LMS API Running', status: 'OK' });

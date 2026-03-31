@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import API from '../api/axios'
 
-const tabs = ['Dashboard', 'Course Builder', 'Q&A Inbox', 'Analytics', 'Earnings']
+const tabs = ['Dashboard', 'Course Builder', 'Attendance', 'Q&A Inbox', 'Analytics', 'Earnings']
 
 const StatCard = ({ icon, label, value, sub, color, delay = 0 }) => (
   <div style={{ background: '#13131a', border: `1px solid ${color}25`, borderRadius: 16, padding: '16px 18px', animation: `fadeUp 0.6s ease ${delay}s both`, transition: 'all 0.3s', position: 'relative', overflow: 'hidden' }}
@@ -42,6 +42,19 @@ const InstructorPanel = () => {
   const [form, setForm] = useState({ title: '', description: '', category: '', price: 0, level: 'beginner' })
   const [message, setMessage] = useState('')
   const [answers, setAnswers] = useState({})
+  const [attendanceCourses, setAttendanceCourses] = useState([])
+const [selectedCourse, setSelectedCourse] = useState(null)
+const [attendanceStudents, setAttendanceStudents] = useState([])
+const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0])
+const [sessionName, setSessionName] = useState('Regular Class')
+const [attendanceRecords, setAttendanceRecords] = useState([])
+const [attendanceHistory, setAttendanceHistory] = useState([])
+const [attendanceMsg, setAttendanceMsg] = useState('')
+const [attendanceMsgType, setAttendanceMsgType] = useState('success')
+const [loadingStudents, setLoadingStudents] = useState(false)
+const [savingAttendance, setSavingAttendance] = useState(false)
+const [notifying, setNotifying] = useState(false)
+const [attendanceView, setAttendanceView] = useState('take')
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [tabMenuOpen, setTabMenuOpen] = useState(false)
 
@@ -50,6 +63,78 @@ const InstructorPanel = () => {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+  const loadStudents = async (courseId) => {
+    setLoadingStudents(true)
+    setAttendanceStudents([])
+    setAttendanceRecords([])
+    try {
+      const { data } = await API.get(`/attendance/students/${courseId}`)
+      setAttendanceStudents(data)
+      setAttendanceRecords(data.map(s => ({
+        student: s._id,
+        status: 'present',
+        name: s.name,
+        email: s.email
+      })))
+    } catch (err) {
+      setAttendanceMsg('❌ Failed to load students')
+      setAttendanceMsgType('error')
+    }
+    setLoadingStudents(false)
+  }
+
+  const updateStatus = (studentId, status) => {
+    setAttendanceRecords(prev =>
+      prev.map(r => r.student === studentId ? { ...r, status } : r)
+    )
+  }
+
+  const markAll = (status) => {
+    setAttendanceRecords(prev => prev.map(r => ({ ...r, status })))
+  }
+
+  const saveAttendance = async () => {
+    if (!selectedCourse) return setAttendanceMsg('❌ Please select a course')
+    if (attendanceRecords.length === 0) return setAttendanceMsg('❌ No students found')
+    setSavingAttendance(true)
+    try {
+      const { data } = await API.post('/attendance', {
+        courseId: selectedCourse,
+        date: attendanceDate,
+        session: sessionName,
+        records: attendanceRecords.map(r => ({ student: r.student, status: r.status }))
+      })
+      setAttendanceHistory([data, ...attendanceHistory])
+      setAttendanceMsg('✅ Attendance saved successfully!')
+      setAttendanceMsgType('success')
+      setAttendanceView('history')
+    } catch (err) {
+      setAttendanceMsg('❌ ' + (err.response?.data?.message || 'Failed to save'))
+      setAttendanceMsgType('error')
+    }
+    setSavingAttendance(false)
+    setTimeout(() => setAttendanceMsg(''), 4000)
+  }
+
+  const sendNotifications = async (attendanceId, notifyType) => {
+    setNotifying(true)
+    try {
+      const { data } = await API.post(`/attendance/${attendanceId}/notify`, { notifyType })
+      setAttendanceHistory(prev =>
+        prev.map(a => a._id === attendanceId
+          ? { ...a, notified: true }
+          : a
+        )
+      )
+      setAttendanceMsg(`✅ ${data.message}`)
+      setAttendanceMsgType('success')
+    } catch (err) {
+      setAttendanceMsg('❌ Failed to send notifications')
+      setAttendanceMsgType('error')
+    }
+    setNotifying(false)
+    setTimeout(() => setAttendanceMsg(''), 5000)
+  }
 
   if (user?.role !== 'instructor') return <Navigate to="/dashboard" replace />
 
@@ -58,6 +143,10 @@ const InstructorPanel = () => {
       .then(({ data }) => { setCourses(data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
+
+   API.get('/attendance/instructor')
+      .then(({ data }) => setAttendanceHistory(data))
+      .catch(() => {})
 
   const handleCreate = async (e) => {
     e.preventDefault()
@@ -76,10 +165,11 @@ const InstructorPanel = () => {
   const totalEarnings = mockEarnings.reduce((a, e) => a + e.amount, 0)
   const maxEarning = Math.max(...mockEarnings.map(e => e.amount))
 
-  const tabIcons = {
+ const tabIcons = {
     Dashboard: '📊', 'Course Builder': '🎬',
-    'Q&A Inbox': '💬', Analytics: '📈', Earnings: '💰'
+    Attendance: '📋', 'Q&A Inbox': '💬', Analytics: '📈', Earnings: '💰'
   }
+  
 
   return (
     <div style={{ background: '#07070f', minHeight: '100vh', color: '#fff', fontFamily: "'DM Sans',sans-serif" }}>
@@ -329,6 +419,281 @@ const InstructorPanel = () => {
                 </span>
               </div>
             </div>
+
+            {/* ══ ATTENDANCE ══ */}
+        {activeTab === 'Attendance' && (
+          <div style={{ animation: 'fadeIn 0.4s ease both' }}>
+
+            {/* Message */}
+            {attendanceMsg && (
+              <div style={{ background: attendanceMsgType === 'error' ? 'rgba(255,107,107,0.1)' : 'rgba(0,200,81,0.1)', border: `1px solid ${attendanceMsgType === 'error' ? 'rgba(255,107,107,0.3)' : 'rgba(0,200,81,0.3)'}`, borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 14, color: attendanceMsgType === 'error' ? '#ff6b6b' : '#00c851' }}>
+                {attendanceMsg}
+              </div>
+            )}
+
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+              <div>
+                <h2 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 22, margin: '0 0 4px' }}>📋 Attendance</h2>
+                <p style={{ color: 'rgba(255,255,255,0.4)', margin: 0, fontSize: 13 }}>Track and manage student attendance</p>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setAttendanceView('take')} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: 'DM Sans,sans-serif', fontWeight: 600, fontSize: 13, background: attendanceView === 'take' ? 'linear-gradient(135deg,#6c47ff,#9c47ff)' : 'rgba(255,255,255,0.06)', color: '#fff' }}>
+                  ✏️ Take Attendance
+                </button>
+                <button onClick={() => setAttendanceView('history')} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', cursor: 'pointer', fontFamily: 'DM Sans,sans-serif', fontWeight: 600, fontSize: 13, background: attendanceView === 'history' ? 'linear-gradient(135deg,#6c47ff,#9c47ff)' : 'rgba(255,255,255,0.06)', color: '#fff' }}>
+                  📜 History
+                </button>
+              </div>
+            </div>
+
+            {/* TAKE ATTENDANCE VIEW */}
+            {attendanceView === 'take' && (
+              <div>
+                {/* Setup Form */}
+                <div style={{ background: '#13131a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 18, padding: 22, marginBottom: 20 }}>
+                  <h3 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 17, margin: '0 0 16px' }}>Session Setup</h3>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 14, marginBottom: 16 }}>
+                    {/* Course Select */}
+                    <div>
+                      <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 6 }}>Select Course</label>
+                      <select value={selectedCourse || ''} onChange={e => { setSelectedCourse(e.target.value); if (e.target.value) loadStudents(e.target.value) }}
+                        style={{ width: '100%', padding: '11px 14px', borderRadius: 10, background: '#1a1a24', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: 14, outline: 'none', fontFamily: 'DM Sans,sans-serif', boxSizing: 'border-box' }}>
+                        <option value="">-- Select Course --</option>
+                        {courses.map(c => <option key={c._id} value={c._id}>{c.title}</option>)}
+                      </select>
+                    </div>
+
+                    {/* Date */}
+                    <div>
+                      <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 6 }}>Date</label>
+                      <input type="date" value={attendanceDate} onChange={e => setAttendanceDate(e.target.value)}
+                        style={{ width: '100%', padding: '11px 14px', borderRadius: 10, background: '#1a1a24', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: 14, outline: 'none', fontFamily: 'DM Sans,sans-serif', boxSizing: 'border-box' }} />
+                    </div>
+
+                    {/* Session Name */}
+                    <div>
+                      <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 6 }}>Session Name</label>
+                      <input type="text" value={sessionName} onChange={e => setSessionName(e.target.value)} placeholder="e.g. Morning Session"
+                        style={{ width: '100%', padding: '11px 14px', borderRadius: 10, background: '#1a1a24', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', fontSize: 14, outline: 'none', fontFamily: 'DM Sans,sans-serif', boxSizing: 'border-box' }}
+                        onFocus={e => e.target.style.borderColor = 'rgba(108,71,255,0.6)'}
+                        onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Student List */}
+                {loadingStudents && (
+                  <div style={{ textAlign: 'center', padding: 40, color: 'rgba(255,255,255,0.3)' }}>
+                    <div style={{ fontSize: 36, marginBottom: 10 }}>⏳</div>
+                    <p>Loading students...</p>
+                  </div>
+                )}
+
+                {!loadingStudents && attendanceStudents.length > 0 && (
+                  <div style={{ background: '#13131a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 18, overflow: 'hidden' }}>
+                    {/* Header row */}
+                    <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                      <div>
+                        <h3 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16, margin: '0 0 4px' }}>Student List</h3>
+                        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: 0 }}>
+                          {attendanceStudents.length} students enrolled ·
+                          <span style={{ color: '#00c851' }}> {attendanceRecords.filter(r => r.status === 'present').length} present</span> ·
+                          <span style={{ color: '#ff6b6b' }}> {attendanceRecords.filter(r => r.status === 'absent').length} absent</span> ·
+                          <span style={{ color: '#ff9500' }}> {attendanceRecords.filter(r => r.status === 'late').length} late</span>
+                        </p>
+                      </div>
+                      {/* Mark All buttons */}
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button onClick={() => markAll('present')} style={{ background: 'rgba(0,200,81,0.15)', border: '1px solid rgba(0,200,81,0.3)', color: '#00c851', padding: '6px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans,sans-serif' }}>
+                          ✅ All Present
+                        </button>
+                        <button onClick={() => markAll('absent')} style={{ background: 'rgba(255,107,107,0.15)', border: '1px solid rgba(255,107,107,0.3)', color: '#ff6b6b', padding: '6px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans,sans-serif' }}>
+                          ❌ All Absent
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Students */}
+                    <div>
+                      {attendanceStudents.map((student, i) => {
+                        const record = attendanceRecords.find(r => r.student === student._id)
+                        const status = record?.status || 'present'
+                        return (
+                          <div key={student._id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px', borderBottom: i < attendanceStudents.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', transition: 'background 0.2s', flexWrap: 'wrap' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            {/* Avatar */}
+                            <div style={{ width: 42, height: 42, borderRadius: '50%', background: status === 'present' ? 'linear-gradient(135deg,#00c851,#00a844)' : status === 'late' ? 'linear-gradient(135deg,#ff9500,#ff7500)' : 'linear-gradient(135deg,#ff6b6b,#ff4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 17, flexShrink: 0, transition: 'all 0.3s' }}>
+                              {student.name?.[0]?.toUpperCase()}
+                            </div>
+
+                            {/* Info */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: '#fff' }}>{student.name}</p>
+                              <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{student.email}</p>
+                            </div>
+
+                            {/* Status Buttons */}
+                            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                              {['present', 'late', 'absent'].map(s => (
+                                <button key={s} onClick={() => updateStatus(student._id, s)} style={{
+                                  padding: isMobile ? '6px 10px' : '7px 14px',
+                                  borderRadius: 9, border: 'none', cursor: 'pointer',
+                                  fontFamily: 'DM Sans,sans-serif', fontWeight: 600,
+                                  fontSize: isMobile ? 11 : 12, transition: 'all 0.2s',
+                                  background: status === s
+                                    ? s === 'present' ? '#00c851' : s === 'late' ? '#ff9500' : '#ff6b6b'
+                                    : 'rgba(255,255,255,0.06)',
+                                  color: status === s ? '#fff' : 'rgba(255,255,255,0.4)',
+                                  transform: status === s ? 'scale(1.05)' : 'scale(1)',
+                                  boxShadow: status === s ? `0 0 12px ${s === 'present' ? 'rgba(0,200,81,0.4)' : s === 'late' ? 'rgba(255,149,0,0.4)' : 'rgba(255,107,107,0.4)'}` : 'none'
+                                }}>
+                                  {s === 'present' ? '✅' : s === 'late' ? '🕐' : '❌'} {isMobile ? '' : s.charAt(0).toUpperCase() + s.slice(1)}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Save Button */}
+                    <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: 10, fontSize: 13, color: 'rgba(255,255,255,0.4)', alignItems: 'center', marginRight: 'auto' }}>
+                        <span style={{ color: '#00c851' }}>✅ {attendanceRecords.filter(r => r.status === 'present').length}</span>
+                        <span style={{ color: '#ff9500' }}>🕐 {attendanceRecords.filter(r => r.status === 'late').length}</span>
+                        <span style={{ color: '#ff6b6b' }}>❌ {attendanceRecords.filter(r => r.status === 'absent').length}</span>
+                      </div>
+                      <button onClick={saveAttendance} disabled={savingAttendance} style={{ background: 'linear-gradient(135deg,#6c47ff,#9c47ff)', border: 'none', color: '#fff', padding: '11px 28px', borderRadius: 12, cursor: savingAttendance ? 'wait' : 'pointer', fontWeight: 700, fontSize: 14, fontFamily: 'DM Sans,sans-serif', boxShadow: '0 0 25px rgba(108,71,255,0.4)', opacity: savingAttendance ? 0.7 : 1 }}>
+                        {savingAttendance ? '⏳ Saving...' : '💾 Save Attendance'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {!loadingStudents && !selectedCourse && (
+                  <div style={{ textAlign: 'center', padding: '50px 20px', background: '#13131a', border: '1px dashed rgba(108,71,255,0.3)', borderRadius: 18 }}>
+                    <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Select a course above to start taking attendance</p>
+                  </div>
+                )}
+
+                {!loadingStudents && selectedCourse && attendanceStudents.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '50px 20px', background: '#13131a', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 18 }}>
+                    <div style={{ fontSize: 48, marginBottom: 12 }}>👥</div>
+                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No students enrolled in this course yet</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* HISTORY VIEW */}
+            {attendanceView === 'history' && (
+              <div>
+                {attendanceHistory.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '50px 20px', background: '#13131a', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 18 }}>
+                    <div style={{ fontSize: 48, marginBottom: 12 }}>📜</div>
+                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No attendance records yet</p>
+                    <button onClick={() => setAttendanceView('take')} style={{ background: 'linear-gradient(135deg,#6c47ff,#9c47ff)', border: 'none', color: '#fff', padding: '10px 22px', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontFamily: 'DM Sans,sans-serif', marginTop: 16, fontSize: 14 }}>
+                      Take Attendance →
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {attendanceHistory.map((record, i) => (
+                      <div key={record._id} style={{ background: '#13131a', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 18, overflow: 'hidden', animation: `fadeUp 0.5s ease ${i * 0.07}s both` }}>
+
+                        {/* Record Header */}
+                        <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                          <div>
+                            <h3 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 16, margin: '0 0 4px', color: '#fff' }}>
+                              {record.course?.title || 'Course'}
+                            </h3>
+                            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, margin: 0 }}>
+                              📅 {new Date(record.date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                              {record.session && ` · ${record.session}`}
+                            </p>
+                          </div>
+
+                          {/* Stats badges */}
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            <span style={{ background: 'rgba(0,200,81,0.12)', color: '#00c851', fontSize: 12, padding: '4px 12px', borderRadius: 100, fontWeight: 600 }}>
+                              ✅ {record.totalPresent} Present
+                            </span>
+                            {record.totalLate > 0 && (
+                              <span style={{ background: 'rgba(255,149,0,0.12)', color: '#ff9500', fontSize: 12, padding: '4px 12px', borderRadius: 100, fontWeight: 600 }}>
+                                🕐 {record.totalLate} Late
+                              </span>
+                            )}
+                            {record.totalAbsent > 0 && (
+                              <span style={{ background: 'rgba(255,107,107,0.12)', color: '#ff6b6b', fontSize: 12, padding: '4px 12px', borderRadius: 100, fontWeight: 600 }}>
+                                ❌ {record.totalAbsent} Absent
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Student records */}
+                        <div>
+                          {record.records?.map((r, ri) => (
+                            <div key={ri} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px', borderBottom: ri < record.records.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                              <div style={{ width: 34, height: 34, borderRadius: '50%', background: r.status === 'present' ? 'rgba(0,200,81,0.2)' : r.status === 'late' ? 'rgba(255,149,0,0.2)' : 'rgba(255,107,107,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, flexShrink: 0, color: r.status === 'present' ? '#00c851' : r.status === 'late' ? '#ff9500' : '#ff6b6b' }}>
+                                {r.student?.name?.[0]?.toUpperCase() || '?'}
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ margin: 0, fontSize: 13, color: '#fff', fontWeight: 500 }}>{r.student?.name || 'Student'}</p>
+                                <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.student?.email}</p>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                                <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 100, fontWeight: 600, background: r.status === 'present' ? 'rgba(0,200,81,0.12)' : r.status === 'late' ? 'rgba(255,149,0,0.12)' : 'rgba(255,107,107,0.12)', color: r.status === 'present' ? '#00c851' : r.status === 'late' ? '#ff9500' : '#ff6b6b' }}>
+                                  {r.status === 'present' ? '✅ Present' : r.status === 'late' ? '🕐 Late' : '❌ Absent'}
+                                </span>
+                                {r.notified && (
+                                  <span style={{ fontSize: 10, color: '#a78bff', background: 'rgba(108,71,255,0.12)', padding: '2px 8px', borderRadius: 100 }}>
+                                    📧 Notified
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Email Notification Buttons */}
+                        {(record.totalAbsent > 0 || record.totalLate > 0) && (
+                          <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginRight: 4 }}>📧 Send Email:</span>
+                            {record.totalAbsent > 0 && (
+                              <button onClick={() => sendNotifications(record._id, 'absent')} disabled={notifying} style={{ background: 'rgba(255,107,107,0.12)', border: '1px solid rgba(255,107,107,0.3)', color: '#ff6b6b', padding: '7px 16px', borderRadius: 9, cursor: notifying ? 'wait' : 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans,sans-serif', opacity: notifying ? 0.7 : 1, transition: 'all 0.2s' }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,107,107,0.2)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,107,107,0.12)'}>
+                                {notifying ? '⏳ Sending...' : `📧 Notify ${record.totalAbsent} Absent`}
+                              </button>
+                            )}
+                            {record.totalLate > 0 && (
+                              <button onClick={() => sendNotifications(record._id, 'late')} disabled={notifying} style={{ background: 'rgba(255,149,0,0.12)', border: '1px solid rgba(255,149,0,0.3)', color: '#ff9500', padding: '7px 16px', borderRadius: 9, cursor: notifying ? 'wait' : 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans,sans-serif', opacity: notifying ? 0.7 : 1, transition: 'all 0.2s' }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,149,0,0.2)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,149,0,0.12)'}>
+                                {notifying ? '⏳ Sending...' : `📧 Notify ${record.totalLate} Late`}
+                              </button>
+                            )}
+                            {(record.totalAbsent > 0 || record.totalLate > 0) && (
+                              <button onClick={() => sendNotifications(record._id, 'all')} disabled={notifying} style={{ background: 'linear-gradient(135deg,#6c47ff,#9c47ff)', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 9, cursor: notifying ? 'wait' : 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans,sans-serif', opacity: notifying ? 0.7 : 1 }}>
+                                {notifying ? '⏳ Sending...' : '📧 Notify All'}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {mockQA.map((q, i) => (
