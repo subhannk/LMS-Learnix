@@ -1,21 +1,15 @@
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
+const generateToken = require('../utils/generateToken');
 
-const generateToken = (id, role) => {
-  return jwt.sign(
-    { id, role },
-    process.env.JWT_SECRET || 'cybersquare_secret_2024',
-    { expiresIn: '7d' }
-  );
-};
-
-// Register — anyone can register but needs admin approval
+// ══════════════════════════════════
+// REGISTER USER
+// ══════════════════════════════════
 const registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ message: 'Name, email and password are required' });
+      return res.status(400).json({ message: 'All fields are required' });
     }
 
     const exists = await User.findOne({ email });
@@ -28,23 +22,31 @@ const registerUser = async (req, res) => {
       email,
       password,
       role: role || 'student',
-      isActive: false,
-      isApproved: false
+      isActive: true,
+      isApproved: true   // ✅ Auto approve — no admin approval needed
     });
 
     await user.save();
 
+    // ── Instantly return token so user can login right away ──
     res.status(201).json({
-      message: 'Registration successful! Please wait for admin approval before logging in.',
-      pending: true
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+      scorecard: user.scorecard,
+      token: generateToken(user._id, user.role)
     });
+
   } catch (err) {
-    console.error('Register error:', err);
     res.status(500).json({ message: err.message });
   }
 };
 
-// Login — only approved + active users can login
+// ══════════════════════════════════
+// LOGIN USER
+// ══════════════════════════════════
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -54,24 +56,35 @@ const loginUser = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
-
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    if (!user.isApproved) {
-      return res.status(403).json({
-        message: 'Your account is pending admin approval. Please wait for activation.',
-        pending: true
-      });
-    }
+    // ══════════════════════════════════════════════════════
+    // ADMIN APPROVAL CHECK — COMMENTED OUT
+    // Uncomment this block if you want admin approval back:
+    //
+    // if (!user.isApproved) {
+    //   return res.status(403).json({
+    //     message: 'Your account is pending admin approval. Please wait.',
+    //     pending: true
+    //   });
+    // }
+    //
+    // ══════════════════════════════════════════════════════
 
-    if (!user.isActive) {
-      return res.status(403).json({
-        message: 'Your account has been deactivated. Please contact admin.',
-        deactivated: true
-      });
-    }
+    // ══════════════════════════════════════════════════════
+    // ACTIVE CHECK — COMMENTED OUT
+    // Uncomment this if you want to block deactivated users:
+    //
+    // if (!user.isActive) {
+    //   return res.status(403).json({
+    //     message: 'Your account has been deactivated. Contact admin.',
+    //     deactivated: true
+    //   });
+    // }
+    //
+    // ══════════════════════════════════════════════════════
 
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
@@ -87,18 +100,21 @@ const loginUser = async (req, res) => {
       scorecard: user.scorecard,
       token: generateToken(user._id, user.role)
     });
+
   } catch (err) {
-    console.error('Login error:', err);
     res.status(500).json({ message: err.message });
   }
 };
 
-// Get current user profile
+// ══════════════════════════════════
+// GET CURRENT USER
+// ══════════════════════════════════
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id)
-      .select('-password')
-      .populate('enrolledCourses', 'title thumbnail');
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });

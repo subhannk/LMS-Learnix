@@ -381,6 +381,9 @@ const InstructorPanel = () => {
             )}
 
             {/* Header */}
+            <button onClick={() => navigate('/attendance')} style={{ background: 'linear-gradient(135deg,#00c851,#00a844)', border: 'none', color: '#fff', padding: '7px 16px', borderRadius: 9, cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'DM Sans,sans-serif' }}>
+  📋 Attendance
+</button>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
               <div>
                 <h2 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 900, fontSize: isMobile ? 20 : 26, margin: '0 0 4px' }}>📋 Attendance Manager</h2>

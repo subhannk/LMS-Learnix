@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
+import AttendancePage from './pages/AttendancePage'
 
 import Home from './pages/Home'
 import Login from './pages/Login'
@@ -37,6 +38,7 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminPanel /></ProtectedRoute>} />
             <Route path="/instructor" element={<ProtectedRoute roles={['instructor','admin']}><InstructorPanel /></ProtectedRoute>} />
+            <Route path="/attendance" element={<ProtectedRoute roles={['instructor','admin']}><AttendancePage /></ProtectedRoute>} />
             <Route path="/student/*" element={<ProtectedRoute roles={['student']}><StudentDashboard /></ProtectedRoute>} />
           </Routes>
         </Layout>
