@@ -29,8 +29,8 @@ const Navbar = () => {
           </Link>
         )}
 
-        {user?.role === 'instructor' && (
-          <Link to="/instructor" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', padding: '7px 14px', fontSize: 14, borderRadius: 8 }}
+        {user?.role === 'student' && (
+          <Link to="/courses" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', padding: '7px 14px', fontSize: 14, borderRadius: 8 }}
             onMouseEnter={e => e.target.style.color = '#fff'}
             onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.5)'}>
             My Courses

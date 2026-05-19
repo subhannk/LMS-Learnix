@@ -35,4 +35,7 @@ userSchema.methods.matchPassword = async function (entered) {
   return await bcrypt.compare(entered, this.password);
 };
 
+// console.log("✅ LOADED USER MODEL FILE");
+// console.log("ENUM VALUES:", userSchema.path('role').enumValues);
+
 module.exports = mongoose.model('User', userSchema);

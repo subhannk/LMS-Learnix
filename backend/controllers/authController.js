@@ -6,29 +6,56 @@ const generateToken = require('../utils/generateToken');
 // ══════════════════════════════════
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    let { name, email, password, role } = req.body;
 
+    console.log("📥 Incoming data:", { name, email, role });
+
+    // ✅ Basic validation
     if (!name || !email || !password) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
+    // ✅ Clean inputs
+    name = name.trim();
+    email = email.trim().toLowerCase();
+
+    // 🔥 Fix role issue (ENUM SAFE)
+    const validRoles = [
+      "admin",
+      "instructor",
+      "student",
+      "content_manager",
+      "moderator",
+      "guest"
+    ];
+
+    const cleanRole = role ? role.trim().toLowerCase() : "student";
+
+    const finalRole = validRoles.includes(cleanRole)
+      ? cleanRole
+      : "student";
+
+    console.log("✅ Final role used:", finalRole);
+
+    // ✅ Check existing user
     const exists = await User.findOne({ email });
     if (exists) {
-      return res.status(400).json({ message: 'Email already registered' });
+      return res.status(400).json({ message: "Email already registered" });
     }
 
+    // ✅ Create user (password will be hashed by schema)
     const user = new User({
       name,
       email,
       password,
-      role: role || 'student',
+      role: finalRole,
       isActive: true,
-      isApproved: true   // ✅ Auto approve — no admin approval needed
+      isApproved: true
     });
 
     await user.save();
 
-    // ── Instantly return token so user can login right away ──
+    // ✅ Response with token
     res.status(201).json({
       _id: user._id,
       name: user.name,
@@ -40,6 +67,13 @@ const registerUser = async (req, res) => {
     });
 
   } catch (err) {
+    console.error("❌ REGISTER ERROR:", err);
+
+    // ✅ Handle duplicate email error (MongoDB)
+    if (err.code === 11000) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
     res.status(500).json({ message: err.message });
   }
 };
