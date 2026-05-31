@@ -493,10 +493,10 @@ const ProjectsPage = () => {
 const LiveClassPage = () => {
   const [active, setActive] = useState(null)
   const classes = [
-    { id: 1, title: 'React Advanced Patterns', instructor: 'Rahul Dev', time: 'Today 3:00 PM', status: 'live', viewers: 142, thumbnail: 'https://img.youtube.com/vi/w7ejDZ8SWv8/maxresdefault.jpg', videoId: 'w7ejDZ8SWv8' },
-    { id: 2, title: 'Node.js REST APIs', instructor: 'Priya Nair', time: 'Today 5:00 PM', status: 'upcoming', viewers: 0, thumbnail: 'https://img.youtube.com/vi/fBNz5xF-Kx4/maxresdefault.jpg', videoId: 'fBNz5xF-Kx4' },
-    { id: 3, title: 'Python ML Basics', instructor: 'Arjun Menon', time: 'Tomorrow', status: 'upcoming', viewers: 0, thumbnail: 'https://img.youtube.com/vi/_uQrJ0TkZlc/maxresdefault.jpg', videoId: '_uQrJ0TkZlc' },
-    { id: 4, title: 'Git & GitHub Masterclass', instructor: 'Sarah K', time: 'Yesterday', status: 'recorded', viewers: 891, thumbnail: 'https://img.youtube.com/vi/RGOj5yH7evk/maxresdefault.jpg', videoId: 'RGOj5yH7evk' },
+    { id: 1, title: 'React Advanced Patterns', instructor: 'Rahul Dev', time: 'Today 3:00 PM', status: 'live', viewers: 142, thumbnail: 'https://img.youtube.com/vi/w7ejDZ8SWv8/hqdefault.jpg', videoId: 'w7ejDZ8SWv8' },
+    { id: 2, title: 'Node.js REST APIs', instructor: 'Priya Nair', time: 'Today 5:00 PM', status: 'upcoming', viewers: 0, thumbnail: 'https://img.youtube.com/vi/fBNz5xF-Kx4/hqdefault.jpg', videoId: 'fBNz5xF-Kx4' },
+    { id: 3, title: 'Python ML Basics', instructor: 'Arjun Menon', time: 'Tomorrow', status: 'upcoming', viewers: 0, thumbnail: 'https://img.youtube.com/vi/_uQrJ0TkZlc/hqdefault.jpg', videoId: '_uQrJ0TkZlc' },
+    { id: 4, title: 'Git & GitHub Masterclass', instructor: 'Sarah K', time: 'Yesterday', status: 'recorded', viewers: 891, thumbnail: 'https://img.youtube.com/vi/RGOj5yH7evk/hqdefault.jpg', videoId: 'RGOj5yH7evk' },
   ]
   const statusColor = { live: '#ff6b6b', upcoming: '#ff9500', recorded: '#00c851' }
 

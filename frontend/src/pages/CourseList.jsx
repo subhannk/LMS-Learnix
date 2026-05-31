@@ -7,7 +7,7 @@ export const courses = [
     _id: '1', title: 'Complete Web Development Bootcamp', instructor: { name: 'Angela Yu' },
     category: 'Web Dev', level: 'beginner', price: 0, averageRating: 4.8,
     totalStudents: 125000, duration: '63 hours', lessons: 28, color: '#6c47ff',
-    thumbnail: 'https://img.youtube.com/vi/mU6anWqZJcc/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/mU6anWqZJcc/hqdefault.jpg',
     description: 'Become a full-stack web developer with HTML, CSS, JS, Node, React, MongoDB and more!',
     sections: [
       { title: 'HTML Fundamentals', lessons: [
@@ -29,7 +29,7 @@ export const courses = [
     _id: '2', title: 'React JS Full Course 2024', instructor: { name: 'Traversy Media' },
     category: 'Frontend', level: 'intermediate', price: 0, averageRating: 4.9,
     totalStudents: 98000, duration: '32 hours', lessons: 20, color: '#00d2ff',
-    thumbnail: 'https://img.youtube.com/vi/w7ejDZ8SWv8/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/w7ejDZ8SWv8/hqdefault.jpg',
     description: 'Learn React JS from scratch with hooks, context API, and React Router.',
     sections: [
       { title: 'React Fundamentals', lessons: [
@@ -47,7 +47,7 @@ export const courses = [
     _id: '3', title: 'Node.js & Express Masterclass', instructor: { name: 'Traversy Media' },
     category: 'Backend', level: 'intermediate', price: 0, averageRating: 4.7,
     totalStudents: 76000, duration: '28 hours', lessons: 18, color: '#00c851',
-    thumbnail: 'https://img.youtube.com/vi/fBNz5xF-Kx4/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/fBNz5xF-Kx4/hqdefault.jpg',
     description: 'Learn Node.js and Express. Build REST APIs and web applications.',
     sections: [
       { title: 'Node.js Basics', lessons: [
@@ -64,7 +64,7 @@ export const courses = [
     _id: '4', title: 'Python for Beginners', instructor: { name: 'Mosh Hamedani' },
     category: 'Python', level: 'beginner', price: 0, averageRating: 4.9,
     totalStudents: 210000, duration: '45 hours', lessons: 32, color: '#ff9500',
-    thumbnail: 'https://img.youtube.com/vi/_uQrJ0TkZlc/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/_uQrJ0TkZlc/hqdefault.jpg',
     description: 'Learn Python from scratch. Perfect for beginners with no coding experience.',
     sections: [
       { title: 'Python Basics', lessons: [
@@ -81,7 +81,7 @@ export const courses = [
     _id: '5', title: 'MongoDB Complete Guide', instructor: { name: 'Academind' },
     category: 'Database', level: 'intermediate', price: 0, averageRating: 4.6,
     totalStudents: 54000, duration: '20 hours', lessons: 14, color: '#00c851',
-    thumbnail: 'https://img.youtube.com/vi/ExcRbA7fy_A/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/ExcRbA7fy_A/hqdefault.jpg',
     description: 'Master MongoDB — CRUD, aggregation, indexes and more.',
     sections: [
       { title: 'MongoDB Basics', lessons: [
@@ -94,7 +94,7 @@ export const courses = [
     _id: '6', title: 'Tailwind CSS Full Course', instructor: { name: 'Dave Gray' },
     category: 'CSS', level: 'beginner', price: 0, averageRating: 4.8,
     totalStudents: 67000, duration: '16 hours', lessons: 12, color: '#00d2ff',
-    thumbnail: 'https://img.youtube.com/vi/lCxcTsOHrjo/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/lCxcTsOHrjo/hqdefault.jpg',
     description: 'Build beautiful websites faster with Tailwind CSS utility classes.',
     sections: [
       { title: 'Tailwind Basics', lessons: [
@@ -107,7 +107,7 @@ export const courses = [
     _id: '7', title: 'TypeScript Crash Course', instructor: { name: 'Traversy Media' },
     category: 'TypeScript', level: 'intermediate', price: 0, averageRating: 4.7,
     totalStudents: 43000, duration: '12 hours', lessons: 10, color: '#6c47ff',
-    thumbnail: 'https://img.youtube.com/vi/BCg4U1FzODs/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/BCg4U1FzODs/hqdefault.jpg',
     description: 'Get up and running with TypeScript — types, interfaces, generics.',
     sections: [
       { title: 'TypeScript Basics', lessons: [
@@ -120,7 +120,7 @@ export const courses = [
     _id: '8', title: 'Git & GitHub Full Course', instructor: { name: 'freeCodeCamp' },
     category: 'DevOps', level: 'beginner', price: 0, averageRating: 4.9,
     totalStudents: 189000, duration: '18 hours', lessons: 15, color: '#ff6b6b',
-    thumbnail: 'https://img.youtube.com/vi/RGOj5yH7evk/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/RGOj5yH7evk/hqdefault.jpg',
     description: 'Master Git and GitHub for version control.',
     sections: [
       { title: 'Git Basics', lessons: [
@@ -133,7 +133,7 @@ export const courses = [
     _id: '9', title: 'Cybersecurity Fundamentals', instructor: { name: 'NetworkChuck' },
     category: 'Security', level: 'beginner', price: 0, averageRating: 4.8,
     totalStudents: 91000, duration: '22 hours', lessons: 16, color: '#ff3cac',
-    thumbnail: 'https://img.youtube.com/vi/hXSFdwIIfkc/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/hXSFdwIIfkc/hqdefault.jpg',
     description: 'Learn ethical hacking, network security fundamentals.',
     sections: [
       { title: 'Security Basics', lessons: [
@@ -146,7 +146,7 @@ export const courses = [
     _id: '10', title: 'Flutter Mobile App Dev', instructor: { name: 'Flutter Dev' },
     category: 'Mobile', level: 'intermediate', price: 0, averageRating: 4.7,
     totalStudents: 38000, duration: '24 hours', lessons: 18, color: '#00d2ff',
-    thumbnail: 'https://img.youtube.com/vi/VPvVD8t02U8/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/VPvVD8t02U8/hqdefault.jpg',
     description: 'Build beautiful cross-platform mobile apps with Flutter and Dart.',
     sections: [
       { title: 'Flutter Basics', lessons: [
@@ -159,7 +159,7 @@ export const courses = [
     _id: '11', title: 'AWS Cloud Practitioner', instructor: { name: 'freeCodeCamp' },
     category: 'Cloud', level: 'beginner', price: 0, averageRating: 4.8,
     totalStudents: 72000, duration: '26 hours', lessons: 20, color: '#ff9500',
-    thumbnail: 'https://img.youtube.com/vi/3hLmDS179YE/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/3hLmDS179YE/hqdefault.jpg',
     description: 'Pass the AWS Cloud Practitioner exam and start your cloud career.',
     sections: [
       { title: 'AWS Fundamentals', lessons: [
@@ -172,7 +172,7 @@ export const courses = [
     _id: '12', title: 'Machine Learning with Python', instructor: { name: 'Sentdex' },
     category: 'AI/ML', level: 'advanced', price: 0, averageRating: 4.9,
     totalStudents: 115000, duration: '40 hours', lessons: 30, color: '#ff6b6b',
-    thumbnail: 'https://img.youtube.com/vi/OGxgnH8y2NM/maxresdefault.jpg',
+    thumbnail: 'https://img.youtube.com/vi/OGxgnH8y2NM/hqdefault.jpg',
     description: 'Master machine learning algorithms with Python and TensorFlow.',
     sections: [
       { title: 'ML Fundamentals', lessons: [
